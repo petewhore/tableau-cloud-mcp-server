@@ -49,6 +49,13 @@ cp claude_desktop_config.example.json claude_desktop_config.json
 # - TABLEAU_SITE_ID (your site ID)
 # - TABLEAU_TOKEN_NAME (your PAT name)
 # - TABLEAU_TOKEN_VALUE (your PAT value)
+
+# IMPORTANT: Update the Python command path if needed
+# The template uses /usr/bin/python3, but you may need:
+# - /usr/local/bin/python3 (Homebrew)
+# - /opt/homebrew/bin/python3 (M1 Mac Homebrew)
+# - ~/.pyenv/shims/python (pyenv)
+# Check with: which python3
 ```
 
 Then copy the configured file to the Claude configuration directory:

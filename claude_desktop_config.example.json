@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "tableau-cloud-mcp-server": {
-      "command": "python",
+      "command": "/usr/bin/python3",
       "args": ["-m", "tableau_mcp_server.server"],
       "env": {
         "TABLEAU_SERVER_URL": "https://your-region.online.tableau.com",
