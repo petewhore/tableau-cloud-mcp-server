@@ -22,13 +22,15 @@ from .langchain_integration import TableauQueryProcessor
 from .workflow_orchestrator import WorkflowOrchestrator
 from .intelligence_engine import IntelligenceEngine
 from .autonomous_optimizer import AutonomousOptimizer
+from .vizql_data_service import VizQLDataServiceManager
 
-# Make tableau_client, query_processor, workflow_orchestrator, and intelligence components globally accessible
+# Make tableau_client, query_processor, workflow_orchestrator, intelligence components, and vizql manager globally accessible
 tableau_client: Optional[ExtendedTableauCloudClient] = None
 query_processor: Optional[TableauQueryProcessor] = None
 workflow_orchestrator: Optional[WorkflowOrchestrator] = None
 intelligence_engine: Optional[IntelligenceEngine] = None
 autonomous_optimizer: Optional[AutonomousOptimizer] = None
+vizql_manager: Optional[VizQLDataServiceManager] = None
 
 def get_tableau_client():
     """Get the global tableau client instance."""
@@ -37,7 +39,7 @@ def get_tableau_client():
 
 def set_tableau_client(client: ExtendedTableauCloudClient):
     """Set the global tableau client instance."""
-    global tableau_client, query_processor, workflow_orchestrator, intelligence_engine, autonomous_optimizer
+    global tableau_client, query_processor, workflow_orchestrator, intelligence_engine, autonomous_optimizer, vizql_manager
     tableau_client = client
     
     # Initialize query processor and workflow orchestrator
@@ -49,6 +51,9 @@ def set_tableau_client(client: ExtendedTableauCloudClient):
     # Initialize intelligence engine and autonomous optimizer
     intelligence_engine = IntelligenceEngine(client)
     autonomous_optimizer = AutonomousOptimizer(client)
+    
+    # Initialize VizQL Data Service manager
+    vizql_manager = VizQLDataServiceManager(client)
 
 def get_query_processor():
     """Get the global query processor instance."""
@@ -69,6 +74,11 @@ def get_autonomous_optimizer():
     """Get the global autonomous optimizer instance."""
     global autonomous_optimizer
     return autonomous_optimizer
+
+def get_vizql_manager():
+    """Get the global VizQL Data Service manager instance."""
+    global vizql_manager
+    return vizql_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -912,6 +922,96 @@ async def handle_list_tools() -> List[Tool]:
                 "required": ["enabled"]
             },
         ),
+        # =================================================================
+        # VIZQL DATA SERVICE (Advanced Data Access)
+        # =================================================================
+        Tool(
+            name="extract_datasource_data",
+            description="Extract data from a data source using VizQL Data Service with advanced filtering and export options",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source to extract data from"},
+                    "output_format": {"type": "string", "description": "Output format (json, csv)", "default": "json"},
+                    "file_path": {"type": "string", "description": "Optional file path to save the data"},
+                    "fields": {"type": "array", "items": {"type": "string"}, "description": "Specific fields to extract (default: all fields)"},
+                    "limit": {"type": "integer", "description": "Maximum number of rows to extract"}
+                },
+                "required": ["datasource_luid"]
+            },
+        ),
+        Tool(
+            name="get_datasource_metadata",
+            description="Get comprehensive metadata about a data source including field information, data types, and structure",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source"}
+                },
+                "required": ["datasource_luid"]
+            },
+        ),
+        Tool(
+            name="query_datasource_custom",
+            description="Execute custom queries on data sources with advanced filtering, aggregation, and field selection",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source"},
+                    "query_fields": {"type": "array", "items": {"type": "object"}, "description": "Fields to query with optional aggregations"},
+                    "query_filters": {"type": "array", "items": {"type": "object"}, "description": "Filters to apply"},
+                    "limit": {"type": "integer", "description": "Maximum number of rows to return"}
+                },
+                "required": ["datasource_luid", "query_fields"]
+            },
+        ),
+        Tool(
+            name="analyze_datasource_quality",
+            description="Perform AI-powered data quality analysis on a data source including field analysis and recommendations",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source to analyze"}
+                },
+                "required": ["datasource_luid"]
+            },
+        ),
+        Tool(
+            name="extract_and_analyze_data",
+            description="Extract data and perform comprehensive AI analysis including statistical analysis, pattern detection, and quality assessment",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source"},
+                    "analysis_type": {"type": "string", "description": "Type of analysis (comprehensive, statistical, patterns)", "default": "comprehensive"}
+                },
+                "required": ["datasource_luid"]
+            },
+        ),
+        Tool(
+            name="natural_language_data_query",
+            description="Execute data queries using natural language descriptions. Examples: 'Get top 10 sales by region', 'Find average revenue last month'",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source"},
+                    "natural_language_query": {"type": "string", "description": "Natural language description of the query"}
+                },
+                "required": ["datasource_luid", "natural_language_query"]
+            },
+        ),
+        Tool(
+            name="analyze_field_distribution",
+            description="Analyze data distribution and statistics for a specific field in a data source",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "datasource_luid": {"type": "string", "description": "LUID of the data source"},
+                    "field_name": {"type": "string", "description": "Name of the field to analyze"}
+                },
+                "required": ["datasource_luid", "field_name"]
+            },
+        ),
     ]
 
 
@@ -1309,6 +1409,97 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 else:
                     optimizer.disable_optimization()
                     result = "Autonomous optimization disabled"
+        # VizQL Data Service tools
+        elif name == "extract_datasource_data":
+            vizql = get_vizql_manager()
+            if not vizql:
+                result = "VizQL Data Service not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                output_format = arguments.get("output_format", "json")
+                file_path = arguments.get("file_path")
+                fields = arguments.get("fields")
+                limit = arguments.get("limit")
+                
+                # If limit is specified but no file_path, we need to modify the extraction
+                if limit and not file_path:
+                    # Create a custom query with limit instead of full extraction
+                    if fields:
+                        query_fields = [{"name": field} for field in fields]
+                    else:
+                        # Get metadata first to determine fields
+                        async with vizql.get_vizql_client() as client:
+                            metadata = await client.get_datasource_metadata(datasource_luid)
+                            query_fields = [{"name": field_name} for field_name in list(metadata.keys())[:10]]  # Limit fields for performance
+                    
+                    result = await vizql.create_custom_query(
+                        datasource_luid=datasource_luid,
+                        query_fields=query_fields,
+                        limit=limit
+                    )
+                else:
+                    result = await vizql.extract_datasource_data(
+                        datasource_luid=datasource_luid,
+                        output_format=output_format,
+                        file_path=file_path,
+                        fields=fields
+                    )
+        elif name == "get_datasource_metadata":
+            vizql = get_vizql_manager()
+            if not vizql:
+                result = "VizQL Data Service not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                result = await vizql.analyze_datasource_fields(datasource_luid)
+        elif name == "query_datasource_custom":
+            vizql = get_vizql_manager()
+            if not vizql:
+                result = "VizQL Data Service not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                query_fields = arguments["query_fields"]
+                query_filters = arguments.get("query_filters")
+                limit = arguments.get("limit")
+                
+                result = await vizql.create_custom_query(
+                    datasource_luid=datasource_luid,
+                    query_fields=query_fields,
+                    query_filters=query_filters,
+                    limit=limit
+                )
+        elif name == "analyze_datasource_quality":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                result = await intelligence.analyze_datasource_data_quality(datasource_luid)
+        elif name == "extract_and_analyze_data":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                analysis_type = arguments.get("analysis_type", "comprehensive")
+                result = await intelligence.extract_and_analyze_data(datasource_luid, analysis_type)
+        elif name == "natural_language_data_query":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                natural_language_query = arguments["natural_language_query"]
+                result = await intelligence.create_intelligent_data_query(datasource_luid, natural_language_query)
+        elif name == "analyze_field_distribution":
+            vizql = get_vizql_manager()
+            if not vizql:
+                result = "VizQL Data Service not initialized. Please check configuration."
+            else:
+                datasource_luid = arguments["datasource_luid"]
+                field_name = arguments["field_name"]
+                
+                async with vizql.get_vizql_client() as client:
+                    result = await client.analyze_data_distribution(datasource_luid, field_name)
         else:
             raise ValueError(f"Unknown tool: {name}")
 
