@@ -55,7 +55,13 @@ cp claude_desktop_config.example.json claude_desktop_config.json
 # - /usr/local/bin/python3 (Homebrew)
 # - /opt/homebrew/bin/python3 (M1 Mac Homebrew)
 # - ~/.pyenv/shims/python (pyenv)
+# - /path/to/your/venv/bin/python (virtual environment)
 # Check with: which python3
+#
+# If using a virtual environment, make sure to:
+# 1. Activate your venv: source /path/to/venv/bin/activate
+# 2. Install the package: pip install -e .
+# 3. Use the venv Python: /path/to/venv/bin/python
 ```
 
 Then copy the configured file to the Claude configuration directory:

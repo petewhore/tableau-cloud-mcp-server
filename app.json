@@ -1,0 +1,41 @@
+{
+  "name": "Tableau Cloud MCP Server",
+  "description": "MCP server for Tableau Cloud administration - automate user management, content operations, and permissions",
+  "repository": "https://github.com/petewhore/tableau-cloud-mcp-server",
+  "logo": "https://cdn.worldvectorlogo.com/logos/tableau-software.svg",
+  "keywords": ["tableau", "mcp", "server", "api", "automation"],
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "TABLEAU_SERVER_URL": {
+      "description": "Your Tableau Cloud server URL (e.g., https://eu-west-1a.online.tableau.com)",
+      "required": true
+    },
+    "TABLEAU_SITE_ID": {
+      "description": "Your Tableau Cloud site ID (content URL)",
+      "required": true
+    },
+    "TABLEAU_TOKEN_NAME": {
+      "description": "Your Personal Access Token name",
+      "required": true
+    },
+    "TABLEAU_TOKEN_VALUE": {
+      "description": "Your Personal Access Token value",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [],
+  "scripts": {
+    "postdeploy": "echo 'Tableau Cloud MCP Server deployed successfully!'"
+  }
+}

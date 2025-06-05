@@ -18,6 +18,19 @@ from pydantic import AnyUrl
 
 from .tableau_client import TableauCloudClient
 
+# Make tableau_client globally accessible
+tableau_client: Optional[TableauCloudClient] = None
+
+def get_tableau_client():
+    """Get the global tableau client instance."""
+    global tableau_client
+    return tableau_client
+
+def set_tableau_client(client: TableauCloudClient):
+    """Set the global tableau client instance."""
+    global tableau_client
+    tableau_client = client
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tableau-mcp-server")
@@ -25,8 +38,6 @@ logger = logging.getLogger("tableau-mcp-server")
 # Initialize the MCP server
 server = Server("tableau-cloud-mcp-server")
 
-# Tableau client instance
-tableau_client: Optional[TableauCloudClient] = None
 
 
 @server.list_resources()
@@ -69,21 +80,22 @@ async def handle_list_resources() -> List[Resource]:
 @server.read_resource()
 async def handle_read_resource(uri: AnyUrl) -> str:
     """Read a specific Tableau Cloud resource."""
-    if not tableau_client:
+    client = get_tableau_client()
+    if not client:
         raise RuntimeError("Tableau client not initialized")
     
     uri_str = str(uri)
     
     if uri_str == "tableau://site/info":
-        return await tableau_client.get_site_info()
+        return await client.get_site_info()
     elif uri_str == "tableau://users/list":
-        return await tableau_client.list_users()
+        return await client.list_users()
     elif uri_str == "tableau://projects/list":
-        return await tableau_client.list_projects()
+        return await client.list_projects()
     elif uri_str == "tableau://workbooks/list":
-        return await tableau_client.list_workbooks()
+        return await client.list_workbooks()
     elif uri_str == "tableau://datasources/list":
-        return await tableau_client.list_datasources()
+        return await client.list_datasources()
     else:
         raise ValueError(f"Unknown resource URI: {uri}")
 
@@ -250,42 +262,43 @@ async def handle_list_tools() -> List[Tool]:
 @server.call_tool()
 async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
     """Handle tool calls for Tableau Cloud administration."""
-    if not tableau_client:
+    client = get_tableau_client()
+    if not client:
         raise RuntimeError("Tableau client not initialized")
 
     try:
         if name == "create_user":
-            result = await tableau_client.create_user(
+            result = await client.create_user(
                 username=arguments["username"],
                 site_role=arguments["site_role"],
                 auth_setting=arguments.get("auth_setting", "ServerDefault")
             )
         elif name == "update_user":
-            result = await tableau_client.update_user(
+            result = await client.update_user(
                 user_id=arguments["user_id"],
                 site_role=arguments.get("site_role"),
                 auth_setting=arguments.get("auth_setting")
             )
         elif name == "delete_user":
-            result = await tableau_client.delete_user(arguments["user_id"])
+            result = await client.delete_user(arguments["user_id"])
         elif name == "move_workbook":
-            result = await tableau_client.move_workbook(
+            result = await client.move_workbook(
                 workbook_id=arguments["workbook_id"],
                 target_project_id=arguments["target_project_id"]
             )
         elif name == "move_datasource":
-            result = await tableau_client.move_datasource(
+            result = await client.move_datasource(
                 datasource_id=arguments["datasource_id"],
                 target_project_id=arguments["target_project_id"]
             )
         elif name == "create_project":
-            result = await tableau_client.create_project(
+            result = await client.create_project(
                 name=arguments["name"],
                 description=arguments.get("description"),
                 parent_project_id=arguments.get("parent_project_id")
             )
         elif name == "grant_permissions":
-            result = await tableau_client.grant_permissions(
+            result = await client.grant_permissions(
                 content_type=arguments["content_type"],
                 content_id=arguments["content_id"],
                 grantee_type=arguments["grantee_type"],
@@ -293,7 +306,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 permissions=arguments["permissions"]
             )
         elif name == "revoke_permissions":
-            result = await tableau_client.revoke_permissions(
+            result = await client.revoke_permissions(
                 content_type=arguments["content_type"],
                 content_id=arguments["content_id"],
                 grantee_type=arguments["grantee_type"],
@@ -301,22 +314,22 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 permissions=arguments["permissions"]
             )
         elif name == "list_content_permissions":
-            result = await tableau_client.list_content_permissions(
+            result = await client.list_content_permissions(
                 content_type=arguments["content_type"],
                 content_id=arguments["content_id"]
             )
         elif name == "create_group":
-            result = await tableau_client.create_group(
+            result = await client.create_group(
                 name=arguments["name"],
                 domain_name=arguments.get("domain_name")
             )
         elif name == "add_user_to_group":
-            result = await tableau_client.add_user_to_group(
+            result = await client.add_user_to_group(
                 group_id=arguments["group_id"],
                 user_id=arguments["user_id"]
             )
         elif name == "remove_user_from_group":
-            result = await tableau_client.remove_user_from_group(
+            result = await client.remove_user_from_group(
                 group_id=arguments["group_id"],
                 user_id=arguments["user_id"]
             )
@@ -333,17 +346,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
 async def main():
     """Main entry point for the MCP server."""
     import os
-    global tableau_client
     
     # Initialize Tableau client from environment variables
-    tableau_client = TableauCloudClient(
+    client = TableauCloudClient(
         server_url=os.getenv("TABLEAU_SERVER_URL", "https://eu-west-1a.online.tableau.com"),
         site_id=os.getenv("TABLEAU_SITE_ID", "itsummit"),
         token_name=os.getenv("TABLEAU_TOKEN_NAME"),
         token_value=os.getenv("TABLEAU_TOKEN_VALUE")
     )
     
-    await tableau_client.connect()
+    await client.connect()
+    set_tableau_client(client)
     logger.info("Connected to Tableau Cloud")
     
     # Run the MCP server
