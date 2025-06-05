@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "python",
+      "args": ["-m", "tableau_mcp_server.server"],
+      "env": {
+        "TABLEAU_SERVER_URL": "https://your-region.online.tableau.com",
+        "TABLEAU_SITE_ID": "your-site-id",
+        "TABLEAU_TOKEN_NAME": "your-token-name",
+        "TABLEAU_TOKEN_VALUE": "your-token-value"
+      }
+    }
+  }
+}

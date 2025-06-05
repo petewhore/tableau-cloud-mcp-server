@@ -78,3 +78,4 @@ Thumbs.db
 .env.production
 secrets.json
 credentials.json
+claude_desktop_config.json

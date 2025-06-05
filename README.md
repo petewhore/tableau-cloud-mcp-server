@@ -59,11 +59,21 @@ The server connects to your Tableau Cloud site using Personal Access Token authe
 
 ## Usage
 
-Run the MCP server:
+### Standalone Mode
+Run the MCP server directly:
 
 ```bash
 python -m tableau_mcp_server.server
 ```
+
+### Claude Desktop App Integration
+To use this MCP server with the Claude desktop app, see the detailed setup instructions in [CLAUDE_SETUP.md](CLAUDE_SETUP.md).
+
+Quick setup:
+1. Copy and customize `claude_desktop_config.example.json` with your credentials
+2. Place the configured file in your Claude app configuration directory  
+3. Restart Claude desktop app
+4. Start using Tableau Cloud commands in Claude!
 
 ## Available Tools
 
