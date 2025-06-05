@@ -1,1 +1,1 @@
-web: python -m tableau_mcp_server.simple_server
+web: python -m tableau_mcp_server.http_server

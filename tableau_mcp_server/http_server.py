@@ -18,6 +18,7 @@ from mcp.server.stdio import StdioServerTransport
 import uvicorn
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from .tableau_client import TableauCloudClient
 
@@ -48,6 +49,15 @@ mcp_server.call_tool()(handle_call_tool)
 
 # Create FastAPI app
 app = FastAPI(title="Tableau Cloud MCP Server", version="0.1.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():

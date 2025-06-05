@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "/Users/pnaegele/mcp_tableau/.venv/bin/python",
+      "args": ["/Users/pnaegele/claude_code1/mcp_proxy_client.py"],
+      "env": {}
+    }
+  }
+}

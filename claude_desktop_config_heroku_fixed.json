@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X", "POST", 
+        "https://your-tableau-mcp-server-4a222eaf1bc3.herokuapp.com/mcp",
+        "-H", "Content-Type: application/json",
+        "-d", "@-"
+      ],
+      "env": {}
+    }
+  }
+}
