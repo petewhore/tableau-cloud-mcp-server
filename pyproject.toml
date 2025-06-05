@@ -1,0 +1,20 @@
+[project]
+name = "tableau-cloud-mcp-server"
+version = "0.1.0"
+description = "MCP server for Tableau Cloud administration"
+authors = [
+    {name = "Claude Code", email = "noreply@anthropic.com"}
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "tableauserverclient>=0.28.0",
+    "pydantic>=2.0.0"
+]
+requires-python = ">=3.8"
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools-scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+tableau-mcp-server = "tableau_mcp_server.server:main"
