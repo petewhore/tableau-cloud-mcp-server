@@ -15,6 +15,7 @@ An MCP (Model Context Protocol) server that transforms Tableau Cloud administrat
 🤖 **Autonomous Optimization** - Self-healing and self-optimizing operations  
 🚨 **Intelligent Monitoring** - Real-time anomaly detection and alerting  
 💬 **Natural Language Interface** - Ask questions in plain English  
+🔍 **Direct Data Access** - VizQL Data Service for programmatic data extraction  
 ⚡ **Enterprise-Grade** - Production-ready with comprehensive API coverage  
 
 ---
@@ -43,6 +44,14 @@ An MCP (Model Context Protocol) server that transforms Tableau Cloud administrat
 - **🤖 Autonomous Optimization** - Self-optimizing performance and governance
 - **💡 AI-Powered Recommendations** - Smart suggestions for improvements
 - **🔍 Intelligent Content Discovery** - Natural language content search
+
+### **VizQL Data Service Integration** ✅
+- **🔍 Direct Data Access** - Programmatic access to visualization data
+- **📊 Advanced Querying** - Custom queries with filters and aggregations
+- **🧠 AI-Powered Data Analysis** - Intelligent data quality and pattern analysis
+- **💬 Natural Language Data Queries** - Ask data questions in plain English
+- **⚡ High-Performance Extraction** - Handle massive datasets efficiently
+- **📈 Real-time Data Monitoring** - Continuous data health assessment
 
 ---
 
@@ -77,6 +86,15 @@ An MCP (Model Context Protocol) server that transforms Tableau Cloud administrat
 - `run_autonomous_optimization` - Automated optimization cycles
 - `get_optimization_status` - Monitor AI operations
 - `enable_autonomous_optimization` - Control autonomous features
+
+### **🔍 VizQL Data Service Tools (7 tools)**
+- `extract_datasource_data` - Advanced data extraction with filtering
+- `get_datasource_metadata` - Comprehensive metadata discovery
+- `query_datasource_custom` - Custom queries with aggregations
+- `analyze_datasource_quality` - AI-powered data quality analysis
+- `extract_and_analyze_data` - Combined extraction and analysis
+- `natural_language_data_query` - Natural language data queries
+- `analyze_field_distribution` - Statistical field analysis
 
 ### **🔮 Advanced Workflow Tools (5 tools)**
 - `natural_language_query` - Ask questions in plain English
@@ -125,6 +143,25 @@ Uses: analyze_content_intelligence --project_name "Sales"
 
 Result: Complete AI analysis including semantic understanding, predictive insights, 
 anomaly detection, and optimization recommendations.
+```
+
+### **Direct Data Extraction & Analysis**
+```
+Claude: Extract sales data from our main data source and analyze it for quality issues.
+
+Uses: extract_and_analyze_data --datasource_luid "abc123..." --analysis_type "comprehensive"
+
+Result: Complete data extraction with AI-powered quality analysis, statistical insights, 
+and recommendations for data improvement.
+```
+
+### **Natural Language Data Queries**
+```
+Claude: Show me the top 10 customers by revenue for the last quarter.
+
+Uses: natural_language_data_query --datasource_luid "abc123..." --natural_language_query "top 10 customers by revenue last quarter"
+
+Result: Intelligent query parsing, execution, and results with business insights.
 ```
 
 ### **Natural Language Workflows**
@@ -253,6 +290,7 @@ Result: AI automatically optimizes extracts, calculations, and data sources for 
 - **[Claude Desktop Setup](CLAUDE_SETUP.md)** - Local development setup
 - **[Phase 2 Workflows](PHASE_2_WORKFLOW_AUTOMATION.md)** - Advanced automation
 - **[Phase 3 Intelligence](PHASE_3_INTELLIGENT_INSIGHTS.md)** - AI capabilities
+- **[VizQL Data Service](VIZQL_DATA_SERVICE.md)** - Advanced data access
 
 ---
 
@@ -267,6 +305,9 @@ python test_workflow_orchestration.py
 
 # Test AI intelligence features
 python test_intelligent_analytics.py
+
+# Test VizQL Data Service capabilities
+python test_vizql_data_service.py
 ```
 
 ---
@@ -297,6 +338,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 ✅ **Predictive analytics** that prevent problems before they occur  
 ✅ **Autonomous optimization** that continuously improves performance  
 ✅ **Natural language interface** that makes administration intuitive  
+✅ **Direct data access** with VizQL Data Service integration  
 ✅ **Enterprise-grade reliability** with comprehensive safety features  
 
 **Welcome to the future of intelligent Tableau Cloud management!** 🎉
