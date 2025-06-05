@@ -522,3 +522,490 @@ class TableauCloudClient:
         except Exception as e:
             logger.error(f"Failed to remove user from group: {str(e)}")
             return json.dumps({"success": False, "error": str(e)}, indent=2)
+    
+    async def list_groups(self) -> str:
+        """List all groups in the Tableau Cloud site."""
+        self._ensure_connected()
+        
+        try:
+            all_groups, pagination_item = self.server.groups.get()
+            
+            groups = []
+            for group in all_groups:
+                groups.append({
+                    "id": group.id,
+                    "name": group.name,
+                    "domain_name": group.domain_name
+                })
+            
+            return json.dumps({"groups": groups, "total_count": len(groups)}, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to list groups: {str(e)}")
+            raise
+    
+    async def search_workbooks(self, name: Optional[str] = None, project_name: Optional[str] = None, tag: Optional[str] = None, owner_name: Optional[str] = None) -> str:
+        """Search for workbooks by various criteria."""
+        self._ensure_connected()
+        
+        try:
+            all_workbooks, pagination_item = self.server.workbooks.get()
+            
+            filtered_workbooks = []
+            for workbook in all_workbooks:
+                # Apply filters
+                if name and name.lower() not in workbook.name.lower():
+                    continue
+                if project_name and project_name.lower() != workbook.project_name.lower():
+                    continue
+                if tag and not any(tag.lower() in t.lower() for t in workbook.tags or []):
+                    continue
+                if owner_name:
+                    # Get owner details
+                    try:
+                        owner = self.server.users.get_by_id(workbook.owner_id)
+                        if owner_name.lower() not in owner.name.lower():
+                            continue
+                    except:
+                        continue
+                
+                filtered_workbooks.append({
+                    "id": workbook.id,
+                    "name": workbook.name,
+                    "content_url": workbook.content_url,
+                    "show_tabs": workbook.show_tabs,
+                    "size": workbook.size,
+                    "created_at": workbook.created_at.isoformat() if workbook.created_at else None,
+                    "updated_at": workbook.updated_at.isoformat() if workbook.updated_at else None,
+                    "project_id": workbook.project_id,
+                    "project_name": workbook.project_name,
+                    "owner_id": workbook.owner_id,
+                    "tags": list(workbook.tags) if workbook.tags else []
+                })
+            
+            return json.dumps({"workbooks": filtered_workbooks, "total_count": len(filtered_workbooks)}, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to search workbooks: {str(e)}")
+            raise
+    
+    async def search_datasources(self, name: Optional[str] = None, project_name: Optional[str] = None, tag: Optional[str] = None, owner_name: Optional[str] = None, datasource_type: Optional[str] = None) -> str:
+        """Search for data sources by various criteria."""
+        self._ensure_connected()
+        
+        try:
+            all_datasources, pagination_item = self.server.datasources.get()
+            
+            filtered_datasources = []
+            for datasource in all_datasources:
+                # Apply filters
+                if name and name.lower() not in datasource.name.lower():
+                    continue
+                if project_name and project_name.lower() != datasource.project_name.lower():
+                    continue
+                if tag and not any(tag.lower() in t.lower() for t in datasource.tags or []):
+                    continue
+                if datasource_type and datasource_type.lower() != datasource.datasource_type.lower():
+                    continue
+                if owner_name:
+                    # Get owner details
+                    try:
+                        owner = self.server.users.get_by_id(datasource.owner_id)
+                        if owner_name.lower() not in owner.name.lower():
+                            continue
+                    except:
+                        continue
+                
+                filtered_datasources.append({
+                    "id": datasource.id,
+                    "name": datasource.name,
+                    "content_url": datasource.content_url,
+                    "type": datasource.datasource_type,
+                    "created_at": datasource.created_at.isoformat() if datasource.created_at else None,
+                    "updated_at": datasource.updated_at.isoformat() if datasource.updated_at else None,
+                    "project_id": datasource.project_id,
+                    "project_name": datasource.project_name,
+                    "owner_id": datasource.owner_id,
+                    "tags": list(datasource.tags) if datasource.tags else [],
+                    "use_remote_query_agent": datasource.use_remote_query_agent,
+                    "is_certified": datasource.certified
+                })
+            
+            return json.dumps({"datasources": filtered_datasources, "total_count": len(filtered_datasources)}, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to search datasources: {str(e)}")
+            raise
+    
+    async def search_users(self, name: Optional[str] = None, email: Optional[str] = None, site_role: Optional[str] = None) -> str:
+        """Search for users by various criteria."""
+        self._ensure_connected()
+        
+        try:
+            all_users, pagination_item = self.server.users.get()
+            
+            filtered_users = []
+            for user in all_users:
+                # Apply filters
+                if name and name.lower() not in user.name.lower():
+                    continue
+                if email and email.lower() not in (user.email or "").lower():
+                    continue
+                if site_role and site_role.lower() != user.site_role.lower():
+                    continue
+                
+                filtered_users.append({
+                    "id": user.id,
+                    "name": user.name,
+                    "site_role": user.site_role,
+                    "auth_setting": user.auth_setting,
+                    "last_login": user.last_login.isoformat() if user.last_login else None,
+                    "email": user.email,
+                    "domain_name": user.domain_name
+                })
+            
+            return json.dumps({"users": filtered_users, "total_count": len(filtered_users)}, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to search users: {str(e)}")
+            raise
+    
+    async def search_projects(self, name: Optional[str] = None, description: Optional[str] = None) -> str:
+        """Search for projects by various criteria."""
+        self._ensure_connected()
+        
+        try:
+            all_projects, pagination_item = self.server.projects.get()
+            
+            filtered_projects = []
+            for project in all_projects:
+                # Apply filters
+                if name and name.lower() not in project.name.lower():
+                    continue
+                if description and description.lower() not in (project.description or "").lower():
+                    continue
+                
+                filtered_projects.append({
+                    "id": project.id,
+                    "name": project.name,
+                    "description": project.description,
+                    "created_at": getattr(project, 'created_at', None),
+                    "updated_at": getattr(project, 'updated_at', None),
+                    "content_permissions": project.content_permissions,
+                    "parent_id": project.parent_id
+                })
+            
+            return json.dumps({"projects": filtered_projects, "total_count": len(filtered_projects)}, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to search projects: {str(e)}")
+            raise
+    
+    async def get_workbook_by_name(self, workbook_name: str, project_name: str) -> str:
+        """Get a workbook by name and project."""
+        self._ensure_connected()
+        
+        try:
+            all_workbooks, pagination_item = self.server.workbooks.get()
+            
+            for workbook in all_workbooks:
+                if (workbook.name.lower() == workbook_name.lower() and 
+                    workbook.project_name.lower() == project_name.lower()):
+                    
+                    result = {
+                        "id": workbook.id,
+                        "name": workbook.name,
+                        "content_url": workbook.content_url,
+                        "show_tabs": workbook.show_tabs,
+                        "size": workbook.size,
+                        "created_at": workbook.created_at.isoformat() if workbook.created_at else None,
+                        "updated_at": workbook.updated_at.isoformat() if workbook.updated_at else None,
+                        "project_id": workbook.project_id,
+                        "project_name": workbook.project_name,
+                        "owner_id": workbook.owner_id,
+                        "tags": list(workbook.tags) if workbook.tags else []
+                    }
+                    
+                    return json.dumps(result, indent=2)
+            
+            return json.dumps({"error": f"Workbook '{workbook_name}' not found in project '{project_name}'"})
+            
+        except Exception as e:
+            logger.error(f"Failed to get workbook by name: {str(e)}")
+            return json.dumps({"error": str(e)}, indent=2)
+    
+    async def get_datasource_by_name(self, datasource_name: str, project_name: str) -> str:
+        """Get a data source by name and project."""
+        self._ensure_connected()
+        
+        try:
+            all_datasources, pagination_item = self.server.datasources.get()
+            
+            for datasource in all_datasources:
+                if (datasource.name.lower() == datasource_name.lower() and 
+                    datasource.project_name.lower() == project_name.lower()):
+                    
+                    result = {
+                        "id": datasource.id,
+                        "name": datasource.name,
+                        "content_url": datasource.content_url,
+                        "type": datasource.datasource_type,
+                        "created_at": datasource.created_at.isoformat() if datasource.created_at else None,
+                        "updated_at": datasource.updated_at.isoformat() if datasource.updated_at else None,
+                        "project_id": datasource.project_id,
+                        "project_name": datasource.project_name,
+                        "owner_id": datasource.owner_id,
+                        "tags": list(datasource.tags) if datasource.tags else [],
+                        "use_remote_query_agent": datasource.use_remote_query_agent,
+                        "is_certified": datasource.certified
+                    }
+                    
+                    return json.dumps(result, indent=2)
+            
+            return json.dumps({"error": f"Data source '{datasource_name}' not found in project '{project_name}'"})
+            
+        except Exception as e:
+            logger.error(f"Failed to get datasource by name: {str(e)}")
+            return json.dumps({"error": str(e)}, indent=2)
+    
+    async def get_user_by_name(self, username: str) -> str:
+        """Get a user by name."""
+        self._ensure_connected()
+        
+        try:
+            all_users, pagination_item = self.server.users.get()
+            
+            for user in all_users:
+                if user.name.lower() == username.lower():
+                    result = {
+                        "id": user.id,
+                        "name": user.name,
+                        "site_role": user.site_role,
+                        "auth_setting": user.auth_setting,
+                        "last_login": user.last_login.isoformat() if user.last_login else None,
+                        "email": user.email,
+                        "domain_name": user.domain_name
+                    }
+                    
+                    return json.dumps(result, indent=2)
+            
+            return json.dumps({"error": f"User '{username}' not found"})
+            
+        except Exception as e:
+            logger.error(f"Failed to get user by name: {str(e)}")
+            return json.dumps({"error": str(e)}, indent=2)
+    
+    async def get_project_by_name(self, project_name: str) -> str:
+        """Get a project by name."""
+        self._ensure_connected()
+        
+        try:
+            all_projects, pagination_item = self.server.projects.get()
+            
+            for project in all_projects:
+                if project.name.lower() == project_name.lower():
+                    result = {
+                        "id": project.id,
+                        "name": project.name,
+                        "description": project.description,
+                        "created_at": getattr(project, 'created_at', None),
+                        "updated_at": getattr(project, 'updated_at', None),
+                        "content_permissions": project.content_permissions,
+                        "parent_id": project.parent_id
+                    }
+                    
+                    return json.dumps(result, indent=2)
+            
+            return json.dumps({"error": f"Project '{project_name}' not found"})
+            
+        except Exception as e:
+            logger.error(f"Failed to get project by name: {str(e)}")
+            return json.dumps({"error": str(e)}, indent=2)
+    
+    async def update_user_enhanced(self, user_id: Optional[str] = None, username: Optional[str] = None, site_role: Optional[str] = None, auth_setting: Optional[str] = None) -> str:
+        """Update an existing user's properties with enhanced name support."""
+        self._ensure_connected()
+        
+        if not user_id and not username:
+            return json.dumps({"success": False, "error": "Either user_id or username must be provided"})
+        
+        try:
+            # Get user by name if needed
+            if not user_id and username:
+                all_users, _ = self.server.users.get()
+                for user in all_users:
+                    if user.name.lower() == username.lower():
+                        user_id = user.id
+                        break
+                
+                if not user_id:
+                    return json.dumps({"success": False, "error": f"User '{username}' not found"})
+            
+            user_item = self.server.users.get_by_id(user_id)
+            
+            if site_role:
+                user_item.site_role = site_role
+            if auth_setting:
+                user_item.auth_setting = auth_setting
+            
+            updated_user = self.server.users.update(user_item)
+            
+            result = {
+                "success": True,
+                "user": {
+                    "id": updated_user.id,
+                    "name": updated_user.name,
+                    "site_role": updated_user.site_role,
+                    "auth_setting": updated_user.auth_setting
+                }
+            }
+            
+            return json.dumps(result, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to update user: {str(e)}")
+            return json.dumps({"success": False, "error": str(e)}, indent=2)
+    
+    async def delete_user_enhanced(self, user_id: Optional[str] = None, username: Optional[str] = None) -> str:
+        """Delete a user from Tableau Cloud with enhanced name support."""
+        self._ensure_connected()
+        
+        if not user_id and not username:
+            return json.dumps({"success": False, "error": "Either user_id or username must be provided"})
+        
+        try:
+            # Get user by name if needed
+            if not user_id and username:
+                all_users, _ = self.server.users.get()
+                for user in all_users:
+                    if user.name.lower() == username.lower():
+                        user_id = user.id
+                        break
+                
+                if not user_id:
+                    return json.dumps({"success": False, "error": f"User '{username}' not found"})
+            
+            self.server.users.remove(user_id)
+            
+            result = {
+                "success": True,
+                "message": f"User deleted successfully"
+            }
+            
+            return json.dumps(result, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to delete user: {str(e)}")
+            return json.dumps({"success": False, "error": str(e)}, indent=2)
+    
+    async def move_workbook_enhanced(self, workbook_id: Optional[str] = None, workbook_name: Optional[str] = None, current_project_name: Optional[str] = None, target_project_id: Optional[str] = None, target_project_name: Optional[str] = None) -> str:
+        """Move a workbook to a different project with enhanced name support."""
+        self._ensure_connected()
+        
+        try:
+            # Resolve workbook ID if needed
+            if not workbook_id:
+                if not workbook_name or not current_project_name:
+                    return json.dumps({"success": False, "error": "Either workbook_id or both workbook_name and current_project_name must be provided"})
+                
+                all_workbooks, _ = self.server.workbooks.get()
+                for workbook in all_workbooks:
+                    if (workbook.name.lower() == workbook_name.lower() and 
+                        workbook.project_name.lower() == current_project_name.lower()):
+                        workbook_id = workbook.id
+                        break
+                
+                if not workbook_id:
+                    return json.dumps({"success": False, "error": f"Workbook '{workbook_name}' not found in project '{current_project_name}'"})
+            
+            # Resolve target project ID if needed
+            if not target_project_id:
+                if not target_project_name:
+                    return json.dumps({"success": False, "error": "Either target_project_id or target_project_name must be provided"})
+                
+                all_projects, _ = self.server.projects.get()
+                for project in all_projects:
+                    if project.name.lower() == target_project_name.lower():
+                        target_project_id = project.id
+                        break
+                
+                if not target_project_id:
+                    return json.dumps({"success": False, "error": f"Target project '{target_project_name}' not found"})
+            
+            # Move the workbook
+            workbook = self.server.workbooks.get_by_id(workbook_id)
+            workbook.project_id = target_project_id
+            
+            updated_workbook = self.server.workbooks.update(workbook)
+            
+            result = {
+                "success": True,
+                "workbook": {
+                    "id": updated_workbook.id,
+                    "name": updated_workbook.name,
+                    "project_id": updated_workbook.project_id,
+                    "project_name": updated_workbook.project_name
+                }
+            }
+            
+            return json.dumps(result, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to move workbook: {str(e)}")
+            return json.dumps({"success": False, "error": str(e)}, indent=2)
+    
+    async def move_datasource_enhanced(self, datasource_id: Optional[str] = None, datasource_name: Optional[str] = None, current_project_name: Optional[str] = None, target_project_id: Optional[str] = None, target_project_name: Optional[str] = None) -> str:
+        """Move a data source to a different project with enhanced name support."""
+        self._ensure_connected()
+        
+        try:
+            # Resolve datasource ID if needed
+            if not datasource_id:
+                if not datasource_name or not current_project_name:
+                    return json.dumps({"success": False, "error": "Either datasource_id or both datasource_name and current_project_name must be provided"})
+                
+                all_datasources, _ = self.server.datasources.get()
+                for datasource in all_datasources:
+                    if (datasource.name.lower() == datasource_name.lower() and 
+                        datasource.project_name.lower() == current_project_name.lower()):
+                        datasource_id = datasource.id
+                        break
+                
+                if not datasource_id:
+                    return json.dumps({"success": False, "error": f"Data source '{datasource_name}' not found in project '{current_project_name}'"})
+            
+            # Resolve target project ID if needed
+            if not target_project_id:
+                if not target_project_name:
+                    return json.dumps({"success": False, "error": "Either target_project_id or target_project_name must be provided"})
+                
+                all_projects, _ = self.server.projects.get()
+                for project in all_projects:
+                    if project.name.lower() == target_project_name.lower():
+                        target_project_id = project.id
+                        break
+                
+                if not target_project_id:
+                    return json.dumps({"success": False, "error": f"Target project '{target_project_name}' not found"})
+            
+            # Move the datasource
+            datasource = self.server.datasources.get_by_id(datasource_id)
+            datasource.project_id = target_project_id
+            
+            updated_datasource = self.server.datasources.update(datasource)
+            
+            result = {
+                "success": True,
+                "datasource": {
+                    "id": updated_datasource.id,
+                    "name": updated_datasource.name,
+                    "project_id": updated_datasource.project_id,
+                    "project_name": updated_datasource.project_name
+                }
+            }
+            
+            return json.dumps(result, indent=2)
+            
+        except Exception as e:
+            logger.error(f"Failed to move datasource: {str(e)}")
+            return json.dumps({"success": False, "error": str(e)}, indent=2)
