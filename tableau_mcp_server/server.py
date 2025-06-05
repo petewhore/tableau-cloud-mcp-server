@@ -19,10 +19,16 @@ from pydantic import AnyUrl
 from .tableau_client import TableauCloudClient
 from .extended_tableau_client import ExtendedTableauCloudClient
 from .langchain_integration import TableauQueryProcessor
+from .workflow_orchestrator import WorkflowOrchestrator
+from .intelligence_engine import IntelligenceEngine
+from .autonomous_optimizer import AutonomousOptimizer
 
-# Make tableau_client and query_processor globally accessible
+# Make tableau_client, query_processor, workflow_orchestrator, and intelligence components globally accessible
 tableau_client: Optional[ExtendedTableauCloudClient] = None
 query_processor: Optional[TableauQueryProcessor] = None
+workflow_orchestrator: Optional[WorkflowOrchestrator] = None
+intelligence_engine: Optional[IntelligenceEngine] = None
+autonomous_optimizer: Optional[AutonomousOptimizer] = None
 
 def get_tableau_client():
     """Get the global tableau client instance."""
@@ -31,18 +37,38 @@ def get_tableau_client():
 
 def set_tableau_client(client: ExtendedTableauCloudClient):
     """Set the global tableau client instance."""
-    global tableau_client, query_processor
+    global tableau_client, query_processor, workflow_orchestrator, intelligence_engine, autonomous_optimizer
     tableau_client = client
     
-    # Initialize query processor
+    # Initialize query processor and workflow orchestrator
     import os
     openai_api_key = os.getenv("OPENAI_API_KEY")
     query_processor = TableauQueryProcessor(client, openai_api_key)
+    workflow_orchestrator = WorkflowOrchestrator(client, openai_api_key)
+    
+    # Initialize intelligence engine and autonomous optimizer
+    intelligence_engine = IntelligenceEngine(client)
+    autonomous_optimizer = AutonomousOptimizer(client)
 
 def get_query_processor():
     """Get the global query processor instance."""
     global query_processor
     return query_processor
+
+def get_workflow_orchestrator():
+    """Get the global workflow orchestrator instance."""
+    global workflow_orchestrator
+    return workflow_orchestrator
+
+def get_intelligence_engine():
+    """Get the global intelligence engine instance."""
+    global intelligence_engine
+    return intelligence_engine
+
+def get_autonomous_optimizer():
+    """Get the global autonomous optimizer instance."""
+    global autonomous_optimizer
+    return autonomous_optimizer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -780,6 +806,112 @@ async def handle_list_tools() -> List[Tool]:
                 "required": ["search_term"]
             },
         ),
+        # =================================================================
+        # WORKFLOW ORCHESTRATION (Phase 2)
+        # =================================================================
+        Tool(
+            name="execute_workflow",
+            description="Execute complex multi-step workflows with safety checks and rollback. Examples: 'Clean up Finance project', 'Migrate John's content', 'Audit permissions for sensitive workbooks'",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "workflow_request": {"type": "string", "description": "Natural language description of the workflow to execute"}
+                },
+                "required": ["workflow_request"]
+            },
+        ),
+        Tool(
+            name="confirm_workflow",
+            description="Confirm or cancel a workflow that requires user approval",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "workflow_id": {"type": "string", "description": "ID of the workflow to confirm"},
+                    "confirmed": {"type": "boolean", "description": "Whether to proceed with the workflow"}
+                },
+                "required": ["workflow_id", "confirmed"]
+            },
+        ),
+        Tool(
+            name="get_workflow_status",
+            description="Get the status and progress of an active workflow",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "workflow_id": {"type": "string", "description": "ID of the workflow to check"}
+                },
+                "required": ["workflow_id"]
+            },
+        ),
+        # =================================================================
+        # INTELLIGENT ANALYTICS & INSIGHTS (Phase 3)
+        # =================================================================
+        Tool(
+            name="analyze_content_intelligence",
+            description="Perform comprehensive AI analysis on Tableau content including semantic analysis, predictive insights, and anomaly detection",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content_type": {"type": "string", "description": "Type of content to analyze (workbooks, datasources, all)", "default": "all"},
+                    "project_name": {"type": "string", "description": "Optional: limit analysis to specific project"}
+                },
+                "required": []
+            },
+        ),
+        Tool(
+            name="get_intelligent_recommendations",
+            description="Get AI-powered recommendations for content optimization and governance",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content_id": {"type": "string", "description": "Optional: get recommendations for specific content item"}
+                },
+                "required": []
+            },
+        ),
+        Tool(
+            name="discover_content_insights",
+            description="Discover content using natural language with AI-powered insights. Examples: 'Find trending dashboards', 'Show unused content', 'Identify similar workbooks'",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Natural language query for content discovery"}
+                },
+                "required": ["query"]
+            },
+        ),
+        Tool(
+            name="run_autonomous_optimization",
+            description="Execute autonomous optimization cycle to automatically improve content performance, usage, and governance",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "scope": {"type": "string", "description": "Optimization scope (performance, usage, governance, all)", "default": "all"},
+                    "dry_run": {"type": "boolean", "description": "Preview optimizations without executing", "default": False}
+                },
+                "required": []
+            },
+        ),
+        Tool(
+            name="get_optimization_status",
+            description="Get status and history of autonomous optimization processes",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+        ),
+        Tool(
+            name="enable_autonomous_optimization",
+            description="Enable or disable autonomous optimization engine",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "enabled": {"type": "boolean", "description": "Whether to enable autonomous optimization"}
+                },
+                "required": ["enabled"]
+            },
+        ),
     ]
 
 
@@ -1053,6 +1185,130 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
                 search_term=arguments["search_term"],
                 content_types=arguments.get("content_types")
             )
+        # Workflow orchestration
+        elif name == "execute_workflow":
+            orchestrator = get_workflow_orchestrator()
+            if not orchestrator:
+                result = "Workflow orchestrator not initialized. Please check configuration."
+            else:
+                result = await orchestrator.process_workflow_request(arguments["workflow_request"])
+        elif name == "confirm_workflow":
+            orchestrator = get_workflow_orchestrator()
+            if not orchestrator:
+                result = "Workflow orchestrator not initialized. Please check configuration."
+            else:
+                result = await orchestrator.confirm_workflow(
+                    workflow_id=arguments["workflow_id"],
+                    confirmed=arguments["confirmed"]
+                )
+        elif name == "get_workflow_status":
+            orchestrator = get_workflow_orchestrator()
+            if not orchestrator:
+                result = "Workflow orchestrator not initialized. Please check configuration."
+            else:
+                result = await orchestrator.get_workflow_status(arguments["workflow_id"])
+        # Intelligence and optimization tools
+        elif name == "analyze_content_intelligence":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                content_type = arguments.get("content_type", "all")
+                project_name = arguments.get("project_name")
+                
+                # Get content data based on type and project filter
+                if content_type == "workbooks" or content_type == "all":
+                    workbooks_data = await client.list_workbooks()
+                    import json
+                    workbooks_list = json.loads(workbooks_data) if isinstance(workbooks_data, str) else workbooks_data
+                else:
+                    workbooks_list = []
+                
+                if content_type == "datasources" or content_type == "all":
+                    datasources_data = await client.list_datasources()
+                    import json
+                    datasources_list = json.loads(datasources_data) if isinstance(datasources_data, str) else datasources_data
+                else:
+                    datasources_list = []
+                
+                # Combine content for analysis
+                all_content = []
+                if isinstance(workbooks_list, list):
+                    all_content.extend([{**wb, 'type': 'workbook'} for wb in workbooks_list])
+                if isinstance(datasources_list, list):
+                    all_content.extend([{**ds, 'type': 'datasource'} for ds in datasources_list])
+                
+                # Filter by project if specified
+                if project_name:
+                    all_content = [item for item in all_content if item.get('project', {}).get('name') == project_name]
+                
+                result = await intelligence.perform_comprehensive_analysis(all_content)
+        elif name == "get_intelligent_recommendations":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                content_id = arguments.get("content_id")
+                result = await intelligence.get_intelligent_recommendations(content_id)
+        elif name == "discover_content_insights":
+            intelligence = get_intelligence_engine()
+            if not intelligence:
+                result = "Intelligence engine not initialized. Please check configuration."
+            else:
+                query = arguments["query"]
+                result = await intelligence.discover_content_insights(query)
+        elif name == "run_autonomous_optimization":
+            optimizer = get_autonomous_optimizer()
+            if not optimizer:
+                result = "Autonomous optimizer not initialized. Please check configuration."
+            else:
+                scope = arguments.get("scope", "all")
+                dry_run = arguments.get("dry_run", False)
+                
+                if dry_run:
+                    optimizer.disable_optimization()  # Temporarily disable for dry run
+                
+                # Get content data for optimization
+                workbooks_data = await client.list_workbooks()
+                datasources_data = await client.list_datasources()
+                
+                import json
+                workbooks_list = json.loads(workbooks_data) if isinstance(workbooks_data, str) else workbooks_data
+                datasources_list = json.loads(datasources_data) if isinstance(datasources_data, str) else datasources_data
+                
+                all_content = []
+                if isinstance(workbooks_list, list):
+                    all_content.extend([{**wb, 'type': 'workbook'} for wb in workbooks_list])
+                if isinstance(datasources_list, list):
+                    all_content.extend([{**ds, 'type': 'datasource'} for ds in datasources_list])
+                
+                # Generate content metrics for optimization
+                content_metrics = optimizer._generate_content_metrics(all_content) if hasattr(optimizer, '_generate_content_metrics') else {}
+                
+                result = await optimizer.run_optimization_cycle(all_content, content_metrics)
+                
+                if dry_run:
+                    result["dry_run"] = True
+                    result["note"] = "This was a dry run - no actual changes were made"
+                    optimizer.enable_optimization()  # Re-enable after dry run
+        elif name == "get_optimization_status":
+            optimizer = get_autonomous_optimizer()
+            if not optimizer:
+                result = "Autonomous optimizer not initialized. Please check configuration."
+            else:
+                result = await optimizer.get_optimization_status()
+        elif name == "enable_autonomous_optimization":
+            optimizer = get_autonomous_optimizer()
+            if not optimizer:
+                result = "Autonomous optimizer not initialized. Please check configuration."
+            else:
+                enabled = arguments["enabled"]
+                if enabled:
+                    optimizer.enable_optimization()
+                    result = "Autonomous optimization enabled"
+                else:
+                    optimizer.disable_optimization()
+                    result = "Autonomous optimization disabled"
         else:
             raise ValueError(f"Unknown tool: {name}")
 

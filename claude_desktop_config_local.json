@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "/Users/pnaegele/mcp_tableau/.venv/bin/python",
+      "args": ["-m", "tableau_mcp_server.server"],
+      "cwd": "/Users/pnaegele/claude_code1",
+      "env": {}
+    }
+  }
+}
