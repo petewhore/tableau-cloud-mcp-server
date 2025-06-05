@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "node",
+      "args": ["-e", "const WebSocket = require('ws'); const ws = new WebSocket('wss://your-tableau-mcp-server-4a222eaf1bc3.herokuapp.com/mcp'); ws.on('open', () => { console.log('Connected to Heroku MCP server'); }); ws.on('message', (data) => { process.stdout.write(data); }); process.stdin.on('data', (data) => { if (ws.readyState === WebSocket.OPEN) ws.send(data); }); ws.on('error', (err) => { console.error('WebSocket error:', err); }); ws.on('close', () => { console.log('Connection closed'); });"],
+      "env": {}
+    }
+  }
+}
