@@ -59,17 +59,27 @@ The server connects to your Tableau Cloud site using Personal Access Token authe
 
 ## Usage
 
-### Standalone Mode
-Run the MCP server directly:
+### Option 1: Heroku Deployment (Recommended)
+Deploy to Heroku to avoid local environment issues:
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/petewhore/tableau-cloud-mcp-server)
+
+See [HEROKU_DEPLOYMENT.md](HEROKU_DEPLOYMENT.md) for detailed instructions.
+
+### Option 2: Local Development
+Run the MCP server locally:
 
 ```bash
 python -m tableau_mcp_server.server
 ```
 
 ### Claude Desktop App Integration
-To use this MCP server with the Claude desktop app, see the detailed setup instructions in [CLAUDE_SETUP.md](CLAUDE_SETUP.md).
+To use this MCP server with the Claude desktop app:
 
-Quick setup:
+**For Heroku deployment**: See [HEROKU_DEPLOYMENT.md](HEROKU_DEPLOYMENT.md)
+**For local setup**: See [CLAUDE_SETUP.md](CLAUDE_SETUP.md)
+
+Quick local setup:
 1. Copy and customize `claude_desktop_config.example.json` with your credentials
 2. Place the configured file in your Claude app configuration directory  
 3. Restart Claude desktop app

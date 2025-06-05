@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tableau-cloud-mcp-server": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/client", "https://your-app-name.herokuapp.com/mcp"],
+      "env": {}
+    }
+  }
+}
